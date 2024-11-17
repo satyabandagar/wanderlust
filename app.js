@@ -11,9 +11,8 @@ const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const ExpressError = require("./utils/ExpressError");
 const { required } = require("joi");
-const listings = require("./routes/listing.js");
-const reviews = require("./routes/review.js");
 const session = require('express-session'); 
+const MongoStore = require("connect-mongo");
 const flash =require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
@@ -23,16 +22,19 @@ const User = require("./models/user.js");
 const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
-async function main() {  
-    try {  
-        await mongoose.connect('mongodb://127.0.0.1:27017/wanderlust');  
-        console.log("Connected to MongoDB");  
-    } catch (err) {  
-        console.error("Error connecting to MongoDB", err);  
-    }  
-}  
 
-main();  
+// const MONGO_URl = ATLASDB_URL;
+const MONGO_URl = "mongodb://localhost:27017/wanderlust";
+main().then(()=>{
+    console.log("connected to DB");
+}).catch((err)=>{
+    console.log(err);
+});
+
+async function main() {
+   
+    await mongoose.connect(MONGO_URl);
+}
 
 app.set("view engine", "ejs");  
 app.set("views", path.join(__dirname, "views"));  
@@ -40,6 +42,18 @@ app.use(express.urlencoded({extended:true}));
 app.use(methodOverride("_method"));
 app.engine('ejs', ejsMate);
 app.use(express.static(path.join(__dirname, "/public")));
+
+// const store = MongoStore.create({
+//     // mongoUrl:MONGO_URl,
+//     crypto: {
+//         secret: "mysupersecretcode"
+//     },
+//     touchAfter: 24 * 3600,
+// });
+
+// store.on("error",()=>{
+//     console.log("ERROR in MONGO SESSION STORE",err);
+// });
 
 const sessionOptions = {
     secret:"mysupersecretcode",
@@ -52,9 +66,10 @@ const sessionOptions = {
     },
 };
 
-app.get("/", (req, res) => {  
-    res.send("welcome bro");  
-}); 
+// app.get("/", (req, res) => {  
+//     res.send("welcome bro");  
+// }); 
+
 
 app.use(session(sessionOptions));
 app.use(flash()); 
